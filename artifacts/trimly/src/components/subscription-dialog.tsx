@@ -1,5 +1,6 @@
 import { X } from 'lucide-react';
 import { useEffect, useState, type FormEvent } from 'react';
+import { useTrimly } from '@/hooks/use-trimly';
 import type { Subscription, BillingCycle } from '@/lib/trimly';
 
 type FormState = {
@@ -15,6 +16,7 @@ type FormState = {
 const colors = ['#efb36c', '#c7db78', '#b7c3ef', '#e9a2a7', '#a7d8cf', '#d7b7ed', '#f3bbbd'];
 
 export function SubscriptionDialog({ open, initial, onClose, onSave }: { open: boolean; initial?: Subscription | null; onClose: () => void; onSave: (data: FormState) => void }) {
+  const { preferences } = useTrimly();
   const [form, setForm] = useState<FormState>({
     name: '', merchant: '', amount: '', billingCycle: 'monthly', nextChargeDate: '', category: 'Other', color: colors[0],
   });
@@ -51,7 +53,7 @@ export function SubscriptionDialog({ open, initial, onClose, onSave }: { open: b
             <label className="form-label">Merchant<input className="field" value={form.merchant} onChange={(event) => update('merchant', event.target.value)} placeholder="e.g. Journal Co." data-testid="input-subscription-merchant" /></label>
           </div>
           <div className="form-grid">
-            <label className="form-label">Amount<input className="field" value={form.amount} onChange={(event) => update('amount', event.target.value)} type="number" min="0.01" step="0.01" placeholder="12.00" data-testid="input-subscription-amount" required /></label>
+            <label className="form-label">Amount (<span data-testid="text-subscription-amount-currency">{preferences.currency}</span>)<input className="field" value={form.amount} onChange={(event) => update('amount', event.target.value)} type="number" min="0.01" step="0.01" placeholder="12.00" data-testid="input-subscription-amount" required /></label>
             <label className="form-label">Billing cycle<select className="select-field" value={form.billingCycle} onChange={(event) => update('billingCycle', event.target.value)} data-testid="select-subscription-cycle"><option value="monthly">Monthly</option><option value="annual">Annual</option><option value="weekly">Weekly</option></select></label>
           </div>
           <div className="form-grid">
