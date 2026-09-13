@@ -1,8 +1,8 @@
 import { Bell, BellOff, Check, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
-import type { Subscription } from '@/lib/trimly';
+import type { Currency, Subscription } from '@/lib/trimly';
 import { formatCycle, formatDate, formatMoney } from '@/lib/trimly';
 
-export function SubscriptionRow({ subscription, onEdit, onDelete, onReminder, onStatus }: { subscription: Subscription; onEdit: () => void; onDelete: () => void; onReminder: () => void; onStatus: () => void }) {
+export function SubscriptionRow({ subscription, currency = 'USD', onEdit, onDelete, onReminder, onStatus }: { subscription: Subscription; currency?: Currency; onEdit: () => void; onDelete: () => void; onReminder: () => void; onStatus: () => void }) {
   const initials = subscription.merchant.split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase();
   const isCancelled = subscription.status === 'cancelled';
   return (
@@ -17,7 +17,7 @@ export function SubscriptionRow({ subscription, onEdit, onDelete, onReminder, on
         <p className="subscription-meta">{subscription.merchant} · {subscription.category} · next {formatDate(subscription.nextChargeDate)}</p>
       </div>
       <div className="subscription-right">
-        <div className="subscription-price" data-testid={`text-subscription-amount-${subscription.id}`}>{formatMoney(subscription.amount)}</div>
+        <div className="subscription-price" data-testid={`text-subscription-amount-${subscription.id}`}>{formatMoney(subscription.amount, 2, currency)}</div>
         <div className="subscription-cycle">{formatCycle(subscription.billingCycle)}</div>
       </div>
       <div className="row-actions">

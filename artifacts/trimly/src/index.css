@@ -150,7 +150,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .hero-card::before { content: ''; position: absolute; width: 120px; height: 120px; right: 132px; bottom: -90px; border-radius: 50%; background: hsl(var(--accent) / .16); }
 .hero-label { position: relative; z-index: 1; color: hsl(var(--primary-foreground) / .64); font: 500 11px var(--app-font-mono); text-transform: uppercase; letter-spacing: .11em; }
 .hero-amount { position: relative; z-index: 1; margin: 12px 0 7px; font-size: clamp(44px, 7vw, 72px); line-height: .95; font-weight: 800; letter-spacing: -.075em; }
-.hero-amount span { font-size: .46em; vertical-align: top; margin: 7px 3px 0 0; display: inline-block; letter-spacing: -.04em; }
 .hero-copy { position: relative; z-index: 1; margin: 0; color: hsl(var(--primary-foreground) / .73); font-size: 13px; }
 .hero-copy strong { color: hsl(var(--accent)); }
 .hero-insight { position: absolute; z-index: 1; right: 30px; bottom: 26px; max-width: 188px; font: 11px/1.5 var(--app-font-mono); color: hsl(var(--primary-foreground) / .68); text-align: right; }
@@ -243,6 +242,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .setting-row:first-of-type { border-top: 0; }
 .setting-row h4 { margin: 0 0 4px; font-size: 12px; }
 .setting-row p { margin: 0; color: hsl(var(--muted-foreground)); font-size: 10px; line-height: 1.4; }
+.setting-currency { min-width: 185px; flex-shrink: 0; }
 .switch { width: 38px; height: 22px; padding: 2px; border: 0; border-radius: 99px; cursor: pointer; background: hsl(var(--muted-foreground) / .3); transition: background-color .18s ease; }
 .switch::after { content: ''; display: block; width: 18px; height: 18px; background: hsl(var(--card)); border-radius: 50%; transition: transform .18s ease; box-shadow: 0 1px 3px hsl(var(--foreground) / .18); }
 .switch[data-on="true"] { background: hsl(var(--primary)); }
@@ -303,6 +303,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
   .subscription-right { min-width: 72px; }
   .row-actions { flex-direction: column; }
   .settings-grid { grid-template-columns: 1fr; }
+   .currency-setting-row { align-items: stretch; flex-direction: column; gap: 10px; }
+   .setting-currency { width: 100%; min-width: 0; max-width: none; }
   .form-grid { grid-template-columns: 1fr; }
   .dialog-form { padding: 5px 17px 17px; }
   .dialog-header { padding: 19px 17px 13px; }

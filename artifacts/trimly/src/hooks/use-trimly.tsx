@@ -3,6 +3,7 @@ import {
   defaultPreferences,
   demoSubscriptions,
   PREFS_KEY,
+  normalizePreferences,
   safeRead,
   STORAGE_KEY,
   type ReminderPreferences,
@@ -29,9 +30,9 @@ export function TrimlyProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const stored = safeRead<Subscription[] | null>(STORAGE_KEY, null);
-    const storedPrefs = safeRead<ReminderPreferences | null>(PREFS_KEY, null);
+    const storedPrefs = safeRead<Partial<ReminderPreferences> | null>(PREFS_KEY, null);
     setSubscriptions(stored ?? demoSubscriptions);
-    setPreferences(storedPrefs ?? defaultPreferences);
+    setPreferences(normalizePreferences(storedPrefs));
     setLoading(false);
   }, []);
 

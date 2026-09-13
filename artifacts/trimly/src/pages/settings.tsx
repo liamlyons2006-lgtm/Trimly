@@ -2,6 +2,7 @@ import { Check, Database, Link2, RotateCcw, ShieldCheck, Sparkles } from 'lucide
 import { useState } from 'react';
 import { PageHeader } from '@/components/trimly-shell';
 import { useTrimly } from '@/hooks/use-trimly';
+import { currencyOptions, type Currency } from '@/lib/trimly';
 
 export default function Settings() {
   const { preferences, updatePreferences, resetData, subscriptions } = useTrimly();
@@ -10,6 +11,11 @@ export default function Settings() {
   const feedback = (message: string) => { setToast(message); window.setTimeout(() => setToast(''), 2800); };
   const reset = () => {
     if (window.confirm('Reset your Trimly data back to the starter demo? This removes manual entries.')) { resetData(); feedback('Starter view restored'); }
+  };
+  const changeCurrency = (currency: Currency) => {
+    updatePreferences({ currency });
+    const selected = currencyOptions.find((option) => option.code === currency);
+    feedback(`${selected?.name ?? currency} selected`);
   };
   return (
     <div className="page-wrap">
@@ -23,6 +29,12 @@ export default function Settings() {
             <div className="setting-row"><div><h4>One week before</h4><p>A little breathing room for bigger renewals.</p></div><button className="switch" data-on={preferences.sevenDays} onClick={() => updatePreferences({ sevenDays: !preferences.sevenDays })} aria-label="Toggle seven day reminders" data-testid="switch-seven-days" /></div>
             <div className="setting-row"><div><h4>One day before</h4><p>The last kind nudge.</p></div><button className="switch" data-on={preferences.oneDay} onClick={() => updatePreferences({ oneDay: !preferences.oneDay })} aria-label="Toggle one day reminders" data-testid="switch-one-day" /></div>
             <div className="setting-row"><div><h4>When something is flagged</h4><p>Remember that you meant to cancel it.</p></div><button className="switch" data-on={preferences.cancelling} onClick={() => updatePreferences({ cancelling: !preferences.cancelling })} aria-label="Toggle cancelling reminders" data-testid="switch-cancelling" /></div>
+            <div className="setting-row currency-setting-row">
+              <div><h4>Display currency</h4><p>Change how amounts are shown. Stored values are not converted.</p></div>
+              <select className="select-field setting-currency" value={preferences.currency} onChange={(event) => changeCurrency(event.target.value as Currency)} aria-label="Display currency" data-testid="select-currency">
+                {currencyOptions.map((option) => <option key={option.code} value={option.code}>{option.name} ({option.code})</option>)}
+              </select>
+            </div>
           </div>
         </section>
         <div style={{ display: 'grid', gap: 18 }}>

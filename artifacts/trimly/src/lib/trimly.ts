@@ -1,6 +1,22 @@
 export type BillingCycle = 'monthly' | 'annual' | 'weekly';
 export type SubscriptionStatus = 'active' | 'cancelling' | 'cancelled';
 export type SubscriptionSource = 'demo' | 'manual' | 'bank';
+export type Currency = 'USD' | 'EUR' | 'GBP' | 'CAD' | 'AUD' | 'JPY';
+
+export type CurrencyOption = {
+  code: Currency;
+  name: string;
+  locale: string;
+};
+
+export const currencyOptions: CurrencyOption[] = [
+  { code: 'USD', name: 'US dollars', locale: 'en-US' },
+  { code: 'EUR', name: 'Euros', locale: 'de-DE' },
+  { code: 'GBP', name: 'Pounds sterling', locale: 'en-GB' },
+  { code: 'CAD', name: 'Canadian dollars', locale: 'en-CA' },
+  { code: 'AUD', name: 'Australian dollars', locale: 'en-AU' },
+  { code: 'JPY', name: 'Japanese yen', locale: 'ja-JP' },
+];
 
 export type Subscription = {
   id: string;
@@ -21,6 +37,7 @@ export type ReminderPreferences = {
   sevenDays: boolean;
   oneDay: boolean;
   cancelling: boolean;
+  currency: Currency;
 };
 
 export const STORAGE_KEY = 'trimly-subscriptions-v1';
@@ -48,7 +65,20 @@ export const defaultPreferences: ReminderPreferences = {
   sevenDays: true,
   oneDay: true,
   cancelling: true,
+  currency: 'USD',
 };
+
+export const isCurrency = (value: unknown): value is Currency =>
+  typeof value === 'string' && currencyOptions.some((option) => option.code === value);
+
+export const normalizeCurrency = (value: unknown): Currency =>
+  isCurrency(value) ? value : defaultPreferences.currency;
+
+export const normalizePreferences = (value: Partial<ReminderPreferences> | null | undefined): ReminderPreferences => ({
+  ...defaultPreferences,
+  ...(value ?? {}),
+  currency: normalizeCurrency(value?.currency),
+});
 
 export const monthlyAmount = (subscription: Subscription) => {
   if (subscription.status === 'cancelled') return 0;
@@ -59,8 +89,16 @@ export const monthlyAmount = (subscription: Subscription) => {
 
 export const annualAmount = (subscription: Subscription) => monthlyAmount(subscription) * 12;
 
-export const formatMoney = (value: number, digits = 2) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: digits, maximumFractionDigits: digits }).format(value);
+export const formatMoney = (value: number, digits = 2, currency: Currency = defaultPreferences.currency) => {
+  const option = currencyOptions.find((item) => item.code === normalizeCurrency(currency)) ?? currencyOptions[0];
+  const fractionDigits = option.code === 'JPY' ? 0 : digits;
+  return new Intl.NumberFormat(option.locale, {
+    style: 'currency',
+    currency: option.code,
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  }).format(value);
+};
 
 export const formatDate = (value: string) =>
   new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(new Date(`${value}T12:00:00`));
