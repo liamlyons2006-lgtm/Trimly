@@ -2,8 +2,9 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import {
   defaultPreferences,
   demoSubscriptions,
+  loadPreferences,
   PREFS_KEY,
-  normalizePreferences,
+  resetPreferences,
   safeRead,
   STORAGE_KEY,
   type ReminderPreferences,
@@ -30,9 +31,8 @@ export function TrimlyProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const stored = safeRead<Subscription[] | null>(STORAGE_KEY, null);
-    const storedPrefs = safeRead<Partial<ReminderPreferences> | null>(PREFS_KEY, null);
     setSubscriptions(stored ?? demoSubscriptions);
-    setPreferences(normalizePreferences(storedPrefs));
+    setPreferences(loadPreferences());
     setLoading(false);
   }, []);
 
@@ -58,7 +58,7 @@ export function TrimlyProvider({ children }: { children: ReactNode }) {
 
   const resetData = useCallback(() => {
     setSubscriptions(demoSubscriptions);
-    setPreferences(defaultPreferences);
+    setPreferences(resetPreferences());
   }, []);
 
   const updatePreferences = useCallback((updates: Partial<ReminderPreferences>) => {

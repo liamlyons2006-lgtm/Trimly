@@ -114,3 +114,8 @@ export const safeRead = <T,>(key: string, fallback: T): T => {
     return fallback;
   }
 };
+
+export const loadPreferences = (): ReminderPreferences =>
+  normalizePreferences(safeRead<Partial<ReminderPreferences> | null>(PREFS_KEY, null));
+
+export const resetPreferences = (): ReminderPreferences => ({ ...defaultPreferences });
