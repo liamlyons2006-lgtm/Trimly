@@ -1,0 +1,1 @@
+- [Trimly integration boundary](trimly-integration-decision.md) — first build is manual-first; never imply bank imports or sent reminders without authorized providers.

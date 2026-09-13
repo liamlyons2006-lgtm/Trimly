@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Trimly"
+description = "A subscription and recurring charge tracker that helps people see their monthly commitments, add charges manually, and stay ahead of renewals before forgotten subscriptions bill again."
+version = "1.0.0"
+id = "artifacts/trimly"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18462
+
+[services.development]
+run = "pnpm --filter @workspace/trimly run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/trimly", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/trimly/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18462"
+BASE_PATH = "/"
