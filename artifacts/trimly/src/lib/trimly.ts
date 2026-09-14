@@ -1,6 +1,6 @@
 export type BillingCycle = 'monthly' | 'annual' | 'weekly';
 export type SubscriptionStatus = 'active' | 'cancelling' | 'cancelled';
-export type SubscriptionSource = 'demo' | 'manual' | 'bank';
+export type SubscriptionSource = 'manual' | 'bank';
 export type Currency = 'USD' | 'EUR' | 'GBP' | 'CAD' | 'AUD' | 'JPY';
 
 export type CurrencyOption = {
@@ -52,14 +52,14 @@ const day = (offset: number) => {
   return date.toISOString().slice(0, 10);
 };
 
-export const demoSubscriptions: Subscription[] = [
-  { id: 'demo-arc', name: 'Arcade Pass', merchant: 'Arcade Pass', amount: 8.99, amountCurrency: 'USD', billingCycle: 'monthly', nextChargeDate: day(2), category: 'Entertainment', status: 'active', reminderEnabled: true, source: 'demo', color: '#efb36c' },
-  { id: 'demo-skill', name: 'Skillshare', merchant: 'Skillshare', amount: 32, amountCurrency: 'USD', billingCycle: 'monthly', nextChargeDate: day(6), category: 'Learning', status: 'active', reminderEnabled: true, source: 'demo', color: '#c7db78' },
-  { id: 'demo-figma', name: 'Figma Professional', merchant: 'Figma', amount: 15, amountCurrency: 'USD', billingCycle: 'monthly', nextChargeDate: day(11), category: 'Work', status: 'active', reminderEnabled: false, source: 'demo', color: '#b7c3ef' },
-  { id: 'demo-nyt', name: 'The Daily Edit', merchant: 'The Daily Edit', amount: 5, amountCurrency: 'USD', billingCycle: 'weekly', nextChargeDate: day(14), category: 'News', status: 'active', reminderEnabled: true, source: 'demo', color: '#e9a2a7' },
-  { id: 'demo-headspace', name: 'Headspace', merchant: 'Headspace', amount: 69.99, amountCurrency: 'USD', billingCycle: 'annual', nextChargeDate: day(21), category: 'Wellbeing', status: 'active', reminderEnabled: true, source: 'demo', color: '#a7d8cf' },
-  { id: 'demo-cloud', name: 'Cloud Harbor', merchant: 'Cloud Harbor', amount: 9.99, amountCurrency: 'USD', billingCycle: 'monthly', nextChargeDate: day(29), category: 'Utilities', status: 'cancelling', reminderEnabled: true, source: 'demo', color: '#d7b7ed' },
-  { id: 'demo-music', name: 'Mellow Music', merchant: 'Mellow Music', amount: 10.99, amountCurrency: 'USD', billingCycle: 'monthly', nextChargeDate: day(39), category: 'Entertainment', status: 'active', reminderEnabled: true, source: 'demo', color: '#f3bbbd' },
+export const seedSubscriptions: Subscription[] = [
+  { id: 'seed-arc', name: 'Arcade Pass', merchant: 'Arcade Pass', amount: 8.99, amountCurrency: 'USD', billingCycle: 'monthly', nextChargeDate: day(2), category: 'Entertainment', status: 'active', reminderEnabled: true, source: 'manual', color: '#efb36c' },
+  { id: 'seed-skill', name: 'Skillshare', merchant: 'Skillshare', amount: 32, amountCurrency: 'USD', billingCycle: 'monthly', nextChargeDate: day(6), category: 'Learning', status: 'active', reminderEnabled: true, source: 'manual', color: '#c7db78' },
+  { id: 'seed-figma', name: 'Figma Professional', merchant: 'Figma', amount: 15, amountCurrency: 'USD', billingCycle: 'monthly', nextChargeDate: day(11), category: 'Work', status: 'active', reminderEnabled: false, source: 'manual', color: '#b7c3ef' },
+  { id: 'seed-nyt', name: 'The Daily Edit', merchant: 'The Daily Edit', amount: 5, amountCurrency: 'USD', billingCycle: 'weekly', nextChargeDate: day(14), category: 'News', status: 'active', reminderEnabled: true, source: 'manual', color: '#e9a2a7' },
+  { id: 'seed-headspace', name: 'Headspace', merchant: 'Headspace', amount: 69.99, amountCurrency: 'USD', billingCycle: 'annual', nextChargeDate: day(21), category: 'Wellbeing', status: 'active', reminderEnabled: true, source: 'manual', color: '#a7d8cf' },
+  { id: 'seed-cloud', name: 'Cloud Harbor', merchant: 'Cloud Harbor', amount: 9.99, amountCurrency: 'USD', billingCycle: 'monthly', nextChargeDate: day(29), category: 'Utilities', status: 'cancelling', reminderEnabled: true, source: 'manual', color: '#d7b7ed' },
+  { id: 'seed-music', name: 'Mellow Music', merchant: 'Mellow Music', amount: 10.99, amountCurrency: 'USD', billingCycle: 'monthly', nextChargeDate: day(39), category: 'Entertainment', status: 'active', reminderEnabled: true, source: 'manual', color: '#f3bbbd' },
 ];
 
 export const defaultPreferences: ReminderPreferences = {

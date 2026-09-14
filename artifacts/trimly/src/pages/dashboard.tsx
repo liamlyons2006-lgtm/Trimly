@@ -6,10 +6,6 @@ import { PageHeader } from '@/components/trimly-shell';
 import { useTrimly } from '@/hooks/use-trimly';
 import { annualAmountInCurrency, buildSpendSeries, formatDate, formatMonthLabel, formatMoney, monthlyAmountInCurrency } from '@/lib/trimly';
 
-function DemoNote() {
-  return <div style={{ marginBottom: 16, padding: '10px 13px', borderRadius: 10, background: 'hsl(var(--accent) / .13)', border: '1px solid hsl(var(--accent) / .27)', color: 'hsl(var(--foreground) / .72)', fontSize: 11 }} data-testid="status-demo-note"><strong style={{ color: 'hsl(var(--foreground))' }}>A little head start.</strong> These softly tagged entries are demo data. Edit or delete them to make Trimly yours.</div>;
-}
-
 export default function Dashboard() {
   const { subscriptions, preferences, loading, addSubscription, spendHistory } = useTrimly();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -36,7 +32,6 @@ export default function Dashboard() {
       <PageHeader eyebrow="Monday, money view" title={<>A clearer view of <em>what repeats.</em></>} subtitle="Trimly keeps the little charges visible, so they stay your choice.">
         <button className="button button-primary" onClick={() => setDialogOpen(true)} data-testid="button-add-dashboard"><Plus size={15} /><span>Add subscription</span></button>
       </PageHeader>
-      {subscriptions.some((item) => item.source === 'demo') && <DemoNote />}
       <section className="hero-card" data-testid="card-monthly-total">
         <div className="hero-label">Monthly recurring spend</div>
         <div className="hero-amount">{formatMoney(monthly, 2, preferences.currency)}</div>

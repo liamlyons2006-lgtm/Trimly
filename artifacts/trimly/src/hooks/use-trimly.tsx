@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   defaultPreferences,
-  demoSubscriptions,
+  seedSubscriptions,
   HISTORY_KEY,
   loadPreferences,
   loadSpendHistory,
@@ -41,7 +41,7 @@ export function TrimlyProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const stored = safeRead<Subscription[] | null>(STORAGE_KEY, null);
-    const initial = (stored?.map(normalizeSubscription) ?? demoSubscriptions).map((item) =>
+    const initial = (stored?.map(normalizeSubscription) ?? seedSubscriptions).map((item) =>
       rollForwardChargeDate(item),
     );
     setSubscriptions(initial);
@@ -78,7 +78,7 @@ export function TrimlyProvider({ children }: { children: ReactNode }) {
   }, [preferences.currency]);
 
   const updateSubscription = useCallback((id: string, updates: Partial<Subscription>) => {
-    setSubscriptions((current) => current.map((item) => item.id === id ? { ...item, ...updates, source: item.source === 'demo' ? 'manual' : item.source } : item));
+    setSubscriptions((current) => current.map((item) => item.id === id ? { ...item, ...updates } : item));
   }, []);
 
   const deleteSubscription = useCallback((id: string) => {
@@ -86,7 +86,7 @@ export function TrimlyProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const resetData = useCallback(() => {
-    setSubscriptions(demoSubscriptions.map((item) => rollForwardChargeDate(item)));
+    setSubscriptions(seedSubscriptions.map((item) => rollForwardChargeDate(item)));
     setPreferences(resetPreferences());
     setSpendHistory([]);
     window.localStorage.removeItem(HISTORY_KEY);

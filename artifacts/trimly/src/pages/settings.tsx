@@ -10,7 +10,7 @@ export default function Settings() {
   const [toast, setToast] = useState('');
   const feedback = (message: string) => { setToast(message); window.setTimeout(() => setToast(''), 2800); };
   const reset = () => {
-    if (window.confirm('Reset your Trimly data back to the starter demo? This removes manual entries.')) { resetData(); feedback('Starter view restored'); }
+    if (window.confirm('Reset your Trimly data back to the starter examples? This removes your changes.')) { resetData(); feedback('Starter view restored'); }
   };
   const changeCurrency = (currency: Currency) => {
     updatePreferences({ currency });
@@ -57,7 +57,7 @@ export default function Settings() {
             </div>
             <div className="setting-block danger-zone">
               <h2 className="setting-title">Reset data</h2>
-              <p className="setting-copy">Remove your manual changes and return to the starter demo. This cannot be undone.</p>
+              <p className="setting-copy">Remove your changes and return to the starter examples. This cannot be undone.</p>
               <button className="button button-secondary button-small" onClick={reset} data-testid="button-reset-data"><RotateCcw size={13} /> Reset to starter data</button>
             </div>
           </section>

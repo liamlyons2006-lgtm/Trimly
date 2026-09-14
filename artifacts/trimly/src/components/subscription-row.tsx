@@ -11,7 +11,6 @@ export function SubscriptionRow({ subscription, currency = 'USD', onEdit, onDele
       <div className="subscription-main">
         <div className="subscription-name-line">
           <h3 className="subscription-name" data-testid={`text-subscription-name-${subscription.id}`}>{subscription.name}</h3>
-          {subscription.source === 'demo' && <span className="badge badge-demo">demo</span>}
           <span className={`badge badge-${subscription.status}`}>{subscription.status === 'cancelling' ? 'cancelling' : subscription.status}</span>
         </div>
         <p className="subscription-meta">{subscription.merchant} · {subscription.category} · next {formatDate(subscription.nextChargeDate)}</p>

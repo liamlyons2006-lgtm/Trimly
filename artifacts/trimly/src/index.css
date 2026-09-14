@@ -208,7 +208,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .subscription-cycle { margin-top: 4px; color: hsl(var(--muted-foreground)); font-size: 10px; }
 .row-actions { display: flex; align-items: center; gap: 3px; }
 .badge { display: inline-flex; align-items: center; border-radius: 99px; padding: 4px 7px; font: 500 9px var(--app-font-mono); letter-spacing: .01em; }
-.badge-demo { background: hsl(var(--accent) / .18); color: hsl(29 63% 33%); }
 .badge-active { background: hsl(153 36% 85%); color: hsl(163 46% 26%); }
 .badge-cancelling { background: hsl(35 90% 84%); color: hsl(29 72% 33%); }
 .badge-cancelled { background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); }
