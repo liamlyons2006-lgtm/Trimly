@@ -11,7 +11,7 @@ export type CurrencyOption = {
 
 export const currencyOptions: CurrencyOption[] = [
   { code: 'USD', name: 'US dollars', locale: 'en-US' },
-  { code: 'EUR', name: 'Euros', locale: 'de-DE' },
+  { code: 'EUR', name: 'Euros', locale: 'en-US' },
   { code: 'GBP', name: 'Pounds sterling', locale: 'en-GB' },
   { code: 'CAD', name: 'Canadian dollars', locale: 'en-CA' },
   { code: 'AUD', name: 'Australian dollars', locale: 'en-AU' },
@@ -131,23 +131,7 @@ export const formatMoney = (
     minimumFractionDigits: fractionDigits,
     maximumFractionDigits: fractionDigits,
   });
-  const converted = convertAmount(value, fromCurrency, option.code);
-  if (option.code !== 'EUR') return formatter.format(converted);
-
-  const parts = formatter.formatToParts(converted);
-  const currencyIndex = parts.findIndex((part) => part.type === 'currency');
-  const firstNumberIndex = parts.findIndex((part) => part.type === 'integer');
-  const prefix = parts
-    .slice(0, firstNumberIndex)
-    .filter((part) => part.type !== 'currency' && part.type !== 'literal')
-    .map((part) => part.value)
-    .join('');
-  const number = parts
-    .slice(firstNumberIndex, currencyIndex)
-    .map((part) => part.value)
-    .join('')
-    .trimEnd();
-  return `${prefix}${parts[currencyIndex]?.value ?? '€'}${number}`;
+  return formatter.format(convertAmount(value, fromCurrency, option.code));
 };
 
 export const formatDate = (value: string) =>
