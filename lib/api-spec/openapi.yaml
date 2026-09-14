@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: plaid
+    description: Plaid bank connector operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,110 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /plaid/status:
+    get:
+      operationId: plaidStatus
+      tags: [plaid]
+      summary: Bank connection status
+      description: >-
+        Returns the current bank connection state. `not_configured` means the
+        server has no Plaid credentials; `not_connected` means configured but no
+        bank linked yet.
+      responses:
+        "200":
+          description: Current connection status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlaidStatus"
+  /plaid/link-token:
+    post:
+      operationId: plaidCreateLinkToken
+      tags: [plaid]
+      summary: Create a Plaid Link token
+      description: >-
+        Creates a short-lived link_token used to initialise Plaid Link in the
+        browser.
+      responses:
+        "200":
+          description: Link token created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlaidLinkToken"
+        "503":
+          description: Plaid is not configured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlaidError"
+  /plaid/exchange:
+    post:
+      operationId: plaidExchange
+      tags: [plaid]
+      summary: Exchange a public token
+      description: >-
+        Exchanges the public_token returned by Plaid Link for a long-lived
+        access token, which is stored server-side.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlaidExchangeRequest"
+      responses:
+        "200":
+          description: Connection established
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlaidStatus"
+        "503":
+          description: Plaid is not configured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlaidError"
+  /plaid/sync:
+    post:
+      operationId: plaidSync
+      tags: [plaid]
+      summary: Detect recurring charges
+      description: >-
+        Fetches recurring transaction streams from the connected bank and maps
+        them into subscription suggestions for the user to confirm.
+      responses:
+        "200":
+          description: Detected suggestions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlaidSyncResult"
+        "409":
+          description: No bank connected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlaidError"
+        "503":
+          description: Plaid is not configured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlaidError"
+  /plaid/connection:
+    delete:
+      operationId: plaidDisconnect
+      tags: [plaid]
+      summary: Disconnect the bank
+      description: Removes the stored Plaid item and its access token.
+      responses:
+        "200":
+          description: Disconnected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlaidStatus"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +139,90 @@ components:
           type: string
       required:
         - status
+    PlaidConnectionState:
+      type: string
+      description: >-
+        not_configured = no server credentials; not_connected = ready but no
+        bank linked; connected = a bank is linked; error = the link needs
+        attention.
+      enum:
+        - not_configured
+        - not_connected
+        - connected
+        - error
+    PlaidStatus:
+      type: object
+      properties:
+        state:
+          $ref: "#/components/schemas/PlaidConnectionState"
+        institution:
+          type: string
+          nullable: true
+          description: Display name of the linked institution, when connected.
+      required:
+        - state
+    PlaidLinkToken:
+      type: object
+      properties:
+        linkToken:
+          type: string
+      required:
+        - linkToken
+    PlaidExchangeRequest:
+      type: object
+      properties:
+        publicToken:
+          type: string
+      required:
+        - publicToken
+    PlaidError:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      required:
+        - error
+    SubscriptionSuggestion:
+      type: object
+      description: A recurring charge detected by Plaid, pending user confirmation.
+      properties:
+        plaidStreamId:
+          type: string
+          description: Stable Plaid recurring-stream id, used to dedupe on re-sync.
+        name:
+          type: string
+        merchant:
+          type: string
+        amount:
+          type: number
+        amountCurrency:
+          type: string
+        billingCycle:
+          type: string
+          enum: [weekly, monthly, annual]
+        nextChargeDate:
+          type: string
+          description: ISO date (YYYY-MM-DD) of the estimated next charge.
+        category:
+          type: string
+      required:
+        - plaidStreamId
+        - name
+        - merchant
+        - amount
+        - amountCurrency
+        - billingCycle
+        - nextChargeDate
+        - category
+    PlaidSyncResult:
+      type: object
+      properties:
+        suggestions:
+          type: array
+          items:
+            $ref: "#/components/schemas/SubscriptionSuggestion"
+      required:
+        - suggestions
 
