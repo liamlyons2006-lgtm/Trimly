@@ -30,8 +30,8 @@ export default function Subscriptions() {
   const openAdd = () => { setEditing(null); setDialogOpen(true); };
   const openEdit = (item: Subscription) => { setEditing(item); setDialogOpen(true); };
   const save = (data: FormData) => {
-    if (editing) updateSubscription(editing.id, { ...data, amount: Number(data.amount), name: data.name, merchant: data.merchant || data.name });
-    else addSubscription({ ...data, amount: Number(data.amount), status: 'active', reminderEnabled: true });
+    if (editing) updateSubscription(editing.id, { ...data, amount: Number(data.amount), amountCurrency: preferences.currency, name: data.name, merchant: data.merchant || data.name });
+    else addSubscription({ ...data, amount: Number(data.amount), amountCurrency: preferences.currency, status: 'active', reminderEnabled: true });
     setDialogOpen(false);
     feedback(editing ? 'Changes saved' : 'Subscription added');
   };

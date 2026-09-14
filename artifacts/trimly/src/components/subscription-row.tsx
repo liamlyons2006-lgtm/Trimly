@@ -17,7 +17,7 @@ export function SubscriptionRow({ subscription, currency = 'USD', onEdit, onDele
         <p className="subscription-meta">{subscription.merchant} · {subscription.category} · next {formatDate(subscription.nextChargeDate)}</p>
       </div>
       <div className="subscription-right">
-        <div className="subscription-price" data-testid={`text-subscription-amount-${subscription.id}`}>{formatMoney(subscription.amount, 2, currency)}</div>
+        <div className="subscription-price" data-testid={`text-subscription-amount-${subscription.id}`}>{formatMoney(subscription.amount, 2, currency, subscription.amountCurrency)}</div>
         <div className="subscription-cycle">{formatCycle(subscription.billingCycle)}</div>
       </div>
       <div className="row-actions">

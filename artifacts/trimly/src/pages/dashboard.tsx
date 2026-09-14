@@ -4,7 +4,7 @@ import { Link } from 'wouter';
 import { SubscriptionDialog } from '@/components/subscription-dialog';
 import { PageHeader } from '@/components/trimly-shell';
 import { useTrimly } from '@/hooks/use-trimly';
-import { annualAmount, formatDate, formatMoney, monthlyAmount } from '@/lib/trimly';
+import { annualAmountInCurrency, formatDate, formatMoney, monthlyAmountInCurrency } from '@/lib/trimly';
 
 function DemoNote() {
   return <div style={{ marginBottom: 16, padding: '10px 13px', borderRadius: 10, background: 'hsl(var(--accent) / .13)', border: '1px solid hsl(var(--accent) / .27)', color: 'hsl(var(--foreground) / .72)', fontSize: 11 }} data-testid="status-demo-note"><strong style={{ color: 'hsl(var(--foreground))' }}>A little head start.</strong> These softly tagged entries are demo data. Edit or delete them to make Trimly yours.</div>;
@@ -15,12 +15,12 @@ export default function Dashboard() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [toast, setToast] = useState('');
   const active = useMemo(() => subscriptions.filter((item) => item.status !== 'cancelled'), [subscriptions]);
-  const monthly = useMemo(() => active.reduce((sum, item) => sum + monthlyAmount(item), 0), [active]);
-  const annual = useMemo(() => active.reduce((sum, item) => sum + annualAmount(item), 0), [active]);
+  const monthly = useMemo(() => active.reduce((sum, item) => sum + monthlyAmountInCurrency(item, preferences.currency), 0), [active, preferences.currency]);
+  const annual = useMemo(() => active.reduce((sum, item) => sum + annualAmountInCurrency(item, preferences.currency), 0), [active, preferences.currency]);
   const upcoming = useMemo(() => [...active].sort((a, b) => a.nextChargeDate.localeCompare(b.nextChargeDate)).slice(0, 4), [active]);
 
   const saveNew = (data: { name: string; merchant: string; amount: string; billingCycle: 'monthly' | 'annual' | 'weekly'; nextChargeDate: string; category: string; color: string }) => {
-    addSubscription({ ...data, amount: Number(data.amount), status: 'active', reminderEnabled: true });
+     addSubscription({ ...data, amount: Number(data.amount), amountCurrency: preferences.currency, status: 'active', reminderEnabled: true });
     setDialogOpen(false);
     setToast('Subscription added to your picture');
     window.setTimeout(() => setToast(''), 2600);
@@ -49,18 +49,18 @@ export default function Dashboard() {
         <div className="stat-card" data-testid="card-next-renewal">
           <div className="stat-top"><span>Next renewal</span><CalendarDays className="stat-icon" size={17} /></div>
           <div className="stat-value">{upcoming[0] ? formatDate(upcoming[0].nextChargeDate) : 'All clear'}</div>
-          <div className="stat-meta">{upcoming[0] ? `${upcoming[0].name} · ${formatMoney(upcoming[0].amount, 2, preferences.currency)}` : 'Nothing waiting in line'}</div>
+          <div className="stat-meta">{upcoming[0] ? `${upcoming[0].name} · ${formatMoney(upcoming[0].amount, 2, preferences.currency, upcoming[0].amountCurrency)}` : 'Nothing waiting in line'}</div>
         </div>
         <div className="stat-card" data-testid="card-cancellable">
           <div className="stat-top"><span>In the maybe pile</span><CircleDollarSign className="stat-icon" size={17} /></div>
-          <div className="stat-value">{formatMoney(active.filter((item) => item.status === 'cancelling').reduce((sum, item) => sum + monthlyAmount(item), 0), 0, preferences.currency)}</div>
+           <div className="stat-value">{formatMoney(active.filter((item) => item.status === 'cancelling').reduce((sum, item) => sum + monthlyAmountInCurrency(item, preferences.currency), 0), 0, preferences.currency)}</div>
           <div className="stat-meta">monthly spend flagged to trim</div>
         </div>
       </section>
       <div className="dashboard-grid">
         <section className="panel">
           <div className="panel-pad section-heading"><h2>Coming up</h2><Link className="mini-link" href="/subscriptions" data-testid="link-view-all">View all <ArrowUpRight size={12} style={{ verticalAlign: 'middle' }} /></Link></div>
-          {upcoming.length === 0 ? <div className="empty-state" style={{ margin: '0 20px 20px' }}><div className="empty-mark"><Sparkles size={18} /></div><h3>Nothing on the horizon</h3><p>Add a subscription and Trimly will keep the next charge close.</p><button className="button button-primary button-small" onClick={() => setDialogOpen(true)} data-testid="button-add-empty">Add one</button></div> : <div className="charge-list">{upcoming.map((item) => <div className="charge-row" key={item.id} data-testid={`row-upcoming-${item.id}`}><div className="merchant-avatar" style={{ background: item.color }}>{item.merchant.slice(0, 1).toUpperCase()}</div><div className="charge-details"><p className="charge-name">{item.name}</p><p className="charge-date">{formatDate(item.nextChargeDate)} {item.status === 'cancelling' ? '· flagged to cancel' : ''}</p></div><span className="charge-amount">{formatMoney(item.amount, 2, preferences.currency)}</span></div>)}</div>}
+       {upcoming.length === 0 ? <div className="empty-state" style={{ margin: '0 20px 20px' }}><div className="empty-mark"><Sparkles size={18} /></div><h3>Nothing on the horizon</h3><p>Add a subscription and Trimly will keep the next charge close.</p><button className="button button-primary button-small" onClick={() => setDialogOpen(true)} data-testid="button-add-empty">Add one</button></div> : <div className="charge-list">{upcoming.map((item) => <div className="charge-row" key={item.id} data-testid={`row-upcoming-${item.id}`}><div className="merchant-avatar" style={{ background: item.color }}>{item.merchant.slice(0, 1).toUpperCase()}</div><div className="charge-details"><p className="charge-name">{item.name}</p><p className="charge-date">{formatDate(item.nextChargeDate)} {item.status === 'cancelling' ? '· flagged to cancel' : ''}</p></div><span className="charge-amount">{formatMoney(item.amount, 2, preferences.currency, item.amountCurrency)}</span></div>)}</div>}
         </section>
         <section className="panel">
           <div className="panel-pad section-heading"><h2>Recent rhythm</h2><span>monthly view</span></div>
@@ -73,7 +73,7 @@ export default function Dashboard() {
           </div>
         </section>
       </div>
-      <SubscriptionDialog open={dialogOpen} onClose={() => setDialogOpen(false)} onSave={saveNew} />
+       <SubscriptionDialog open={dialogOpen} onClose={() => setDialogOpen(false)} onSave={saveNew} />
       {toast && <div className="toast-note" role="status" data-testid="status-dashboard-toast"><Sparkles size={15} />{toast}</div>}
     </div>
   );

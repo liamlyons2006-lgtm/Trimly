@@ -9,13 +9,15 @@ import {
   STORAGE_KEY,
   type ReminderPreferences,
   type Subscription,
+  type Currency,
+  normalizeSubscription,
 } from '@/lib/trimly';
 
 type TrimlyContextValue = {
   subscriptions: Subscription[];
   preferences: ReminderPreferences;
   loading: boolean;
-  addSubscription: (subscription: Omit<Subscription, 'id' | 'source'> & { source?: Subscription['source'] }) => void;
+  addSubscription: (subscription: Omit<Subscription, 'id' | 'source' | 'amountCurrency'> & { source?: Subscription['source']; amountCurrency?: Currency }) => void;
   updateSubscription: (id: string, updates: Partial<Subscription>) => void;
   deleteSubscription: (id: string) => void;
   resetData: () => void;
@@ -31,7 +33,7 @@ export function TrimlyProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const stored = safeRead<Subscription[] | null>(STORAGE_KEY, null);
-    setSubscriptions(stored ?? demoSubscriptions);
+    setSubscriptions(stored?.map(normalizeSubscription) ?? demoSubscriptions);
     setPreferences(loadPreferences());
     setLoading(false);
   }, []);
@@ -44,9 +46,9 @@ export function TrimlyProvider({ children }: { children: ReactNode }) {
     if (!loading) window.localStorage.setItem(PREFS_KEY, JSON.stringify(preferences));
   }, [preferences, loading]);
 
-  const addSubscription = useCallback((subscription: Omit<Subscription, 'id' | 'source'> & { source?: Subscription['source'] }) => {
-    setSubscriptions((current) => [{ ...subscription, id: `manual-${Date.now()}`, source: subscription.source ?? 'manual' }, ...current]);
-  }, []);
+  const addSubscription = useCallback((subscription: Omit<Subscription, 'id' | 'source' | 'amountCurrency'> & { source?: Subscription['source']; amountCurrency?: Currency }) => {
+    setSubscriptions((current) => [{ ...subscription, id: `manual-${Date.now()}`, amountCurrency: subscription.amountCurrency ?? preferences.currency, source: subscription.source ?? 'manual' }, ...current]);
+  }, [preferences.currency]);
 
   const updateSubscription = useCallback((id: string, updates: Partial<Subscription>) => {
     setSubscriptions((current) => current.map((item) => item.id === id ? { ...item, ...updates, source: item.source === 'demo' ? 'manual' : item.source } : item));

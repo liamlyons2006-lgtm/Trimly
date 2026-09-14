@@ -2,18 +2,18 @@ import { ArrowDownRight, BarChart3, Scissors, Sparkles } from 'lucide-react';
 import { useMemo } from 'react';
 import { PageHeader } from '@/components/trimly-shell';
 import { useTrimly } from '@/hooks/use-trimly';
-import { formatMoney, monthlyAmount } from '@/lib/trimly';
+import { formatMoney, monthlyAmountInCurrency } from '@/lib/trimly';
 
 export default function Insights() {
   const { subscriptions, preferences, loading } = useTrimly();
   const active = useMemo(() => subscriptions.filter((item) => item.status !== 'cancelled'), [subscriptions]);
-  const monthly = useMemo(() => active.reduce((sum, item) => sum + monthlyAmount(item), 0), [active]);
-  const cancelling = useMemo(() => active.filter((item) => item.status === 'cancelling').reduce((sum, item) => sum + monthlyAmount(item), 0), [active]);
+   const monthly = useMemo(() => active.reduce((sum, item) => sum + monthlyAmountInCurrency(item, preferences.currency), 0), [active, preferences.currency]);
+   const cancelling = useMemo(() => active.filter((item) => item.status === 'cancelling').reduce((sum, item) => sum + monthlyAmountInCurrency(item, preferences.currency), 0), [active, preferences.currency]);
   const categories = useMemo(() => {
     const map = new Map<string, number>();
-    active.forEach((item) => map.set(item.category, (map.get(item.category) ?? 0) + monthlyAmount(item)));
+     active.forEach((item) => map.set(item.category, (map.get(item.category) ?? 0) + monthlyAmountInCurrency(item, preferences.currency)));
     return [...map.entries()].sort((a, b) => b[1] - a[1]);
-  }, [active]);
+   }, [active, preferences.currency]);
   const chartValues = [0.81, 0.86, 0.93, 0.89, 1.04, 1];
   if (loading) return <div className="page-wrap"><div className="loading-skeleton" /></div>;
   return (

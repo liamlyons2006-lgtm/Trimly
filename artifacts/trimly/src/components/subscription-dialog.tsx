@@ -1,7 +1,7 @@
 import { X } from 'lucide-react';
 import { useEffect, useState, type FormEvent } from 'react';
 import { useTrimly } from '@/hooks/use-trimly';
-import type { Subscription, BillingCycle } from '@/lib/trimly';
+import { convertAmount, type Subscription, type BillingCycle } from '@/lib/trimly';
 
 type FormState = {
   name: string;
@@ -23,11 +23,12 @@ export function SubscriptionDialog({ open, initial, onClose, onSave }: { open: b
 
   useEffect(() => {
     if (initial) {
-      setForm({ name: initial.name, merchant: initial.merchant, amount: String(initial.amount), billingCycle: initial.billingCycle, nextChargeDate: initial.nextChargeDate, category: initial.category, color: initial.color });
+      const displayAmount = convertAmount(initial.amount, initial.amountCurrency, preferences.currency);
+      setForm({ name: initial.name, merchant: initial.merchant, amount: displayAmount.toFixed(preferences.currency === 'JPY' ? 0 : 2), billingCycle: initial.billingCycle, nextChargeDate: initial.nextChargeDate, category: initial.category, color: initial.color });
     } else {
       setForm({ name: '', merchant: '', amount: '', billingCycle: 'monthly', nextChargeDate: '', category: 'Other', color: colors[0] });
     }
-  }, [initial, open]);
+  }, [initial, open, preferences.currency]);
 
   if (!open) return null;
   const update = (key: keyof FormState, value: string) => setForm((current) => ({ ...current, [key]: value }));

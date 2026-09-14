@@ -30,7 +30,7 @@ export default function Settings() {
             <div className="setting-row"><div><h4>One day before</h4><p>The last kind nudge.</p></div><button className="switch" data-on={preferences.oneDay} onClick={() => updatePreferences({ oneDay: !preferences.oneDay })} aria-label="Toggle one day reminders" data-testid="switch-one-day" /></div>
             <div className="setting-row"><div><h4>When something is flagged</h4><p>Remember that you meant to cancel it.</p></div><button className="switch" data-on={preferences.cancelling} onClick={() => updatePreferences({ cancelling: !preferences.cancelling })} aria-label="Toggle cancelling reminders" data-testid="switch-cancelling" /></div>
             <div className="setting-row currency-setting-row">
-              <div><h4>Display currency</h4><p>Change how amounts are shown. Stored values are not converted.</p></div>
+              <div><h4>Display currency</h4><p>Amounts update using reference exchange rates. Saved entries keep their original currency.</p></div>
               <select className="select-field setting-currency" value={preferences.currency} onChange={(event) => changeCurrency(event.target.value as Currency)} aria-label="Display currency" data-testid="select-currency">
                 {currencyOptions.map((option) => <option key={option.code} value={option.code}>{option.name} ({option.code})</option>)}
               </select>
