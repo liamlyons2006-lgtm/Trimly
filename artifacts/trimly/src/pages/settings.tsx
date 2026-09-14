@@ -1,12 +1,12 @@
-import { Check, Database, Link2, RotateCcw, ShieldCheck, Sparkles } from 'lucide-react';
+import { Database, RotateCcw, ShieldCheck, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { PageHeader } from '@/components/trimly-shell';
+import { BankConnection } from '@/components/bank-connection';
 import { useTrimly } from '@/hooks/use-trimly';
 import { currencyOptions, type Currency } from '@/lib/trimly';
 
 export default function Settings() {
   const { preferences, updatePreferences, resetData, subscriptions } = useTrimly();
-  const [connectionState, setConnectionState] = useState<'not-connected' | 'waitlisted'>('not-connected');
   const [toast, setToast] = useState('');
   const feedback = (message: string) => { setToast(message); window.setTimeout(() => setToast(''), 2800); };
   const reset = () => {
@@ -41,12 +41,8 @@ export default function Settings() {
           <section className="panel">
             <div className="setting-block">
               <h2 className="setting-title">Bank connection</h2>
-              <p className="setting-copy">Automatic import is on the way, but it is not connected here. Your manual list stays the source of truth.</p>
-              <div className="connection-box">
-                <div className="connection-symbol">P</div>
-                <div><h4>Plaid connection</h4><p>{connectionState === 'waitlisted' ? 'You are on the waitlist. No account data was connected.' : 'Not connected in this build.'}</p></div>
-                <button className="button button-secondary button-small" onClick={() => { setConnectionState('waitlisted'); feedback('Waitlist note saved locally'); }} disabled={connectionState === 'waitlisted'} data-testid="button-plaid-waitlist">{connectionState === 'waitlisted' ? <><Check size={12} /> Noted</> : <><Link2 size={12} /> Join waitlist</>}</button>
-              </div>
+              <p className="setting-copy">Connect a bank through Plaid to detect recurring charges. Your manual list stays the source of truth — detected charges are only added when you confirm them.</p>
+              <BankConnection />
             </div>
           </section>
           <section className="panel">

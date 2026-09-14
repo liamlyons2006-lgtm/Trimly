@@ -274,6 +274,20 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 @keyframes rise-in { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin .9s linear infinite; }
+
+.suggestions-panel { margin-top: 14px; border: 1px solid hsl(var(--border) / .7); border-radius: 12px; overflow: hidden; }
+.suggestions-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 12px 14px; background: hsl(var(--muted) / .4); border-bottom: 1px solid hsl(var(--border) / .6); }
+.suggestions-head h4 { font-size: 12px; font-weight: 600; color: hsl(var(--foreground)); }
+.suggestions-head p { font-size: 11px; color: hsl(var(--muted-foreground)); margin-top: 2px; }
+.suggestions-list { display: grid; }
+.suggestion-row { display: flex; align-items: center; gap: 11px; padding: 11px 14px; border-bottom: 1px solid hsl(var(--border) / .45); }
+.suggestion-row:last-child { border-bottom: none; }
+.suggestion-main { flex: 1; min-width: 0; }
+.suggestion-name { font-size: 12px; font-weight: 500; color: hsl(var(--foreground)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.suggestion-meta { font-size: 11px; color: hsl(var(--muted-foreground)); margin-top: 1px; }
+.suggestion-added { display: inline-flex; align-items: center; gap: 4px; font: 500 11px var(--app-font-mono); color: hsl(var(--primary)); }
 
 @media (max-width: 900px) {
   .trimly-sidebar { width: 214px; flex-basis: 214px; }
