@@ -1,6 +1,6 @@
-# [Project name]
+# Trimly
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Trimly keeps every recurring charge visible in one local-first view, so small renewals stay your choice.
 
 ## Run & Operate
 
