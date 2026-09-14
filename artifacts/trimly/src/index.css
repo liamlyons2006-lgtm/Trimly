@@ -264,6 +264,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .form-label { display: grid; gap: 6px; color: hsl(var(--muted-foreground)); font: 500 10px var(--app-font-mono); text-transform: uppercase; letter-spacing: .07em; }
 .form-label .field, .form-label .select-field { margin-top: 0; text-transform: none; letter-spacing: normal; }
+.field[aria-invalid="true"] { border-color: hsl(var(--destructive)); }
+.field-error { text-transform: none; letter-spacing: normal; font: 400 11px var(--app-font-mono); color: hsl(var(--destructive)); }
 .dialog-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 5px; }
 .toast-note { position: fixed; right: 22px; bottom: 22px; z-index: 50; display: flex; align-items: center; gap: 9px; padding: 11px 14px; border-radius: 11px; background: hsl(var(--sidebar)); color: hsl(var(--sidebar-foreground)); box-shadow: var(--shadow-lift); font-size: 11px; animation: toast-in .25s ease both; }
 .toast-note svg { color: hsl(var(--accent)); }

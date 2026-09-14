@@ -43,6 +43,7 @@ export type ReminderPreferences = {
 
 export const STORAGE_KEY = 'trimly-subscriptions-v1';
 export const PREFS_KEY = 'trimly-preferences-v1';
+export const HISTORY_KEY = 'trimly-spend-history-v1';
 
 const day = (offset: number) => {
   const date = new Date();
@@ -102,6 +103,44 @@ export const normalizeSubscription = (value: Subscription): Subscription => ({
 export const convertAmount = (value: number, from: Currency, to: Currency) =>
   value * (currencyRates[normalizeCurrency(to)] / currencyRates[normalizeCurrency(from)]);
 
+const startOfToday = () => {
+  const date = new Date();
+  date.setHours(12, 0, 0, 0);
+  return date;
+};
+
+const advanceByCycle = (date: Date, cycle: BillingCycle): Date => {
+  const next = new Date(date);
+  if (cycle === 'weekly') next.setDate(next.getDate() + 7);
+  else if (cycle === 'annual') next.setFullYear(next.getFullYear() + 1);
+  else next.setMonth(next.getMonth() + 1);
+  return next;
+};
+
+// Rolls a charge date that has slipped into the past forward by its billing
+// cycle until it lands today or later, so "next charge" always reads as the
+// genuine next occurrence. Cancelled subscriptions and unparseable dates are
+// left untouched.
+export const rollForwardChargeDate = (
+  subscription: Subscription,
+  now: Date = startOfToday(),
+): Subscription => {
+  if (subscription.status === 'cancelled') return subscription;
+  const parsed = new Date(`${subscription.nextChargeDate}T12:00:00`);
+  if (Number.isNaN(parsed.getTime())) return subscription;
+  if (parsed >= now) return subscription;
+
+  let next = parsed;
+  // Guard against an unexpected loop; a monthly cycle can only be a few
+  // hundred iterations behind at most for any realistic data.
+  let guard = 0;
+  while (next < now && guard < 5000) {
+    next = advanceByCycle(next, subscription.billingCycle);
+    guard += 1;
+  }
+  return { ...subscription, nextChargeDate: next.toISOString().slice(0, 10) };
+};
+
 export const monthlyAmount = (subscription: Subscription) => {
   if (subscription.status === 'cancelled') return 0;
   if (subscription.billingCycle === 'annual') return subscription.amount / 12;
@@ -153,3 +192,56 @@ export const loadPreferences = (): ReminderPreferences =>
   normalizePreferences(safeRead<Partial<ReminderPreferences> | null>(PREFS_KEY, null));
 
 export const resetPreferences = (): ReminderPreferences => ({ ...defaultPreferences });
+
+// A single observed month of recurring spend. Amounts are always stored in USD
+// (the app's base currency) so the display currency can change freely without
+// rewriting recorded history.
+export type SpendSnapshot = {
+  month: string; // YYYY-MM
+  amountUSD: number;
+};
+
+const monthKey = (date: Date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
+export const loadSpendHistory = (): SpendSnapshot[] =>
+  safeRead<SpendSnapshot[]>(HISTORY_KEY, []);
+
+// Records the current monthly total for this calendar month, replacing an
+// existing entry for the same month. Keeps at most the last 12 months.
+export const recordSpendSnapshot = (
+  history: SpendSnapshot[],
+  monthlyTotalUSD: number,
+  now: Date = new Date(),
+): SpendSnapshot[] => {
+  const key = monthKey(now);
+  const withoutCurrent = history.filter((entry) => entry.month !== key);
+  const next = [...withoutCurrent, { month: key, amountUSD: monthlyTotalUSD }];
+  next.sort((a, b) => a.month.localeCompare(b.month));
+  return next.slice(-12);
+};
+
+// Returns exactly `count` months ending with the current month. Months with no
+// recorded snapshot fall back to the current total so a fresh install still has
+// a readable chart, but real observed months are used wherever available.
+export const buildSpendSeries = (
+  history: SpendSnapshot[],
+  currentMonthlyUSD: number,
+  count = 6,
+  now: Date = new Date(),
+): SpendSnapshot[] => {
+  const byMonth = new Map(history.map((entry) => [entry.month, entry.amountUSD]));
+  const series: SpendSnapshot[] = [];
+  for (let i = count - 1; i >= 0; i -= 1) {
+    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const key = monthKey(date);
+    const recorded = byMonth.get(key);
+    series.push({ month: key, amountUSD: recorded ?? currentMonthlyUSD });
+  }
+  return series;
+};
+
+export const formatMonthLabel = (month: string) => {
+  const [year, m] = month.split('-').map(Number);
+  return new Intl.DateTimeFormat('en-US', { month: 'short' }).format(new Date(year, (m ?? 1) - 1, 1));
+};

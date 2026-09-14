@@ -2,12 +2,18 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import {
   defaultPreferences,
   demoSubscriptions,
+  HISTORY_KEY,
   loadPreferences,
+  loadSpendHistory,
+  monthlyAmountInCurrency,
   PREFS_KEY,
+  recordSpendSnapshot,
   resetPreferences,
+  rollForwardChargeDate,
   safeRead,
   STORAGE_KEY,
   type ReminderPreferences,
+  type SpendSnapshot,
   type Subscription,
   type Currency,
   normalizeSubscription,
@@ -22,6 +28,7 @@ type TrimlyContextValue = {
   deleteSubscription: (id: string) => void;
   resetData: () => void;
   updatePreferences: (updates: Partial<ReminderPreferences>) => void;
+  spendHistory: SpendSnapshot[];
 };
 
 const TrimlyContext = createContext<TrimlyContextValue | null>(null);
@@ -29,17 +36,37 @@ const TrimlyContext = createContext<TrimlyContextValue | null>(null);
 export function TrimlyProvider({ children }: { children: ReactNode }) {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [preferences, setPreferences] = useState<ReminderPreferences>(defaultPreferences);
+  const [spendHistory, setSpendHistory] = useState<SpendSnapshot[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const stored = safeRead<Subscription[] | null>(STORAGE_KEY, null);
-    setSubscriptions(stored?.map(normalizeSubscription) ?? demoSubscriptions);
+    const initial = (stored?.map(normalizeSubscription) ?? demoSubscriptions).map((item) =>
+      rollForwardChargeDate(item),
+    );
+    setSubscriptions(initial);
     setPreferences(loadPreferences());
+    setSpendHistory(loadSpendHistory());
     setLoading(false);
   }, []);
 
   useEffect(() => {
     if (!loading) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(subscriptions));
+  }, [subscriptions, loading]);
+
+  // Record this month's recurring total (in the base currency) whenever the
+  // subscription set changes, so the charts reflect genuinely observed months
+  // rather than a projection of today's number.
+  useEffect(() => {
+    if (loading) return;
+    const monthlyUSD = subscriptions
+      .filter((item) => item.status !== 'cancelled')
+      .reduce((sum, item) => sum + monthlyAmountInCurrency(item, 'USD'), 0);
+    setSpendHistory((current) => {
+      const next = recordSpendSnapshot(current, monthlyUSD);
+      window.localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
+      return next;
+    });
   }, [subscriptions, loading]);
 
   useEffect(() => {
@@ -59,15 +86,17 @@ export function TrimlyProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const resetData = useCallback(() => {
-    setSubscriptions(demoSubscriptions);
+    setSubscriptions(demoSubscriptions.map((item) => rollForwardChargeDate(item)));
     setPreferences(resetPreferences());
+    setSpendHistory([]);
+    window.localStorage.removeItem(HISTORY_KEY);
   }, []);
 
   const updatePreferences = useCallback((updates: Partial<ReminderPreferences>) => {
     setPreferences((current) => ({ ...current, ...updates }));
   }, []);
 
-  const value = useMemo(() => ({ subscriptions, preferences, loading, addSubscription, updateSubscription, deleteSubscription, resetData, updatePreferences }), [subscriptions, preferences, loading, addSubscription, updateSubscription, deleteSubscription, resetData, updatePreferences]);
+  const value = useMemo(() => ({ subscriptions, preferences, loading, addSubscription, updateSubscription, deleteSubscription, resetData, updatePreferences, spendHistory }), [subscriptions, preferences, loading, addSubscription, updateSubscription, deleteSubscription, resetData, updatePreferences, spendHistory]);
   return <TrimlyContext.Provider value={value}>{children}</TrimlyContext.Provider>;
 }
 

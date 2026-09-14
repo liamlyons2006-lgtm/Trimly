@@ -4,9 +4,9 @@ import { PageHeader } from '@/components/trimly-shell';
 import { SubscriptionDialog } from '@/components/subscription-dialog';
 import { SubscriptionRow } from '@/components/subscription-row';
 import { useTrimly } from '@/hooks/use-trimly';
-import type { Subscription } from '@/lib/trimly';
+import type { Currency, Subscription } from '@/lib/trimly';
 
-type FormData = { name: string; merchant: string; amount: string; billingCycle: 'monthly' | 'annual' | 'weekly'; nextChargeDate: string; category: string; color: string };
+type FormData = { name: string; merchant: string; amount: string; amountCurrency: Currency; billingCycle: 'monthly' | 'annual' | 'weekly'; nextChargeDate: string; category: string; color: string };
 
 export default function Subscriptions() {
   const { subscriptions, preferences, loading, addSubscription, updateSubscription, deleteSubscription } = useTrimly();
@@ -30,8 +30,8 @@ export default function Subscriptions() {
   const openAdd = () => { setEditing(null); setDialogOpen(true); };
   const openEdit = (item: Subscription) => { setEditing(item); setDialogOpen(true); };
   const save = (data: FormData) => {
-    if (editing) updateSubscription(editing.id, { ...data, amount: Number(data.amount), amountCurrency: preferences.currency, name: data.name, merchant: data.merchant || data.name });
-    else addSubscription({ ...data, amount: Number(data.amount), amountCurrency: preferences.currency, status: 'active', reminderEnabled: true });
+    if (editing) updateSubscription(editing.id, { ...data, amount: Number(data.amount), amountCurrency: data.amountCurrency, name: data.name, merchant: data.merchant || data.name });
+    else addSubscription({ ...data, amount: Number(data.amount), amountCurrency: data.amountCurrency, status: 'active', reminderEnabled: true });
     setDialogOpen(false);
     feedback(editing ? 'Changes saved' : 'Subscription added');
   };

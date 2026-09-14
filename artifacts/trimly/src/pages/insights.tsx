@@ -2,10 +2,10 @@ import { ArrowDownRight, BarChart3, Scissors, Sparkles } from 'lucide-react';
 import { useMemo } from 'react';
 import { PageHeader } from '@/components/trimly-shell';
 import { useTrimly } from '@/hooks/use-trimly';
-import { formatMoney, monthlyAmountInCurrency } from '@/lib/trimly';
+import { buildSpendSeries, formatMonthLabel, formatMoney, monthlyAmountInCurrency } from '@/lib/trimly';
 
 export default function Insights() {
-  const { subscriptions, preferences, loading } = useTrimly();
+  const { subscriptions, preferences, loading, spendHistory } = useTrimly();
   const active = useMemo(() => subscriptions.filter((item) => item.status !== 'cancelled'), [subscriptions]);
    const monthly = useMemo(() => active.reduce((sum, item) => sum + monthlyAmountInCurrency(item, preferences.currency), 0), [active, preferences.currency]);
    const cancelling = useMemo(() => active.filter((item) => item.status === 'cancelling').reduce((sum, item) => sum + monthlyAmountInCurrency(item, preferences.currency), 0), [active, preferences.currency]);
@@ -14,7 +14,9 @@ export default function Insights() {
      active.forEach((item) => map.set(item.category, (map.get(item.category) ?? 0) + monthlyAmountInCurrency(item, preferences.currency)));
     return [...map.entries()].sort((a, b) => b[1] - a[1]);
    }, [active, preferences.currency]);
-  const chartValues = [0.81, 0.86, 0.93, 0.89, 1.04, 1];
+  const monthlyUSD = useMemo(() => active.reduce((sum, item) => sum + monthlyAmountInCurrency(item, 'USD'), 0), [active]);
+  const series = useMemo(() => buildSpendSeries(spendHistory, monthlyUSD, 6), [spendHistory, monthlyUSD]);
+  const seriesMax = useMemo(() => Math.max(...series.map((point) => point.amountUSD), 1), [series]);
   if (loading) return <div className="page-wrap"><div className="loading-skeleton" /></div>;
   return (
     <div className="page-wrap">
@@ -23,11 +25,11 @@ export default function Insights() {
       </PageHeader>
       <div className="insights-layout">
         <section className="panel panel-pad">
-          <div className="section-heading"><h2>Monthly recurring spend</h2><span>last 6 months</span></div>
+          <div className="section-heading"><h2>Monthly recurring spend</h2><span>recorded, last 6 months</span></div>
            <div className="insight-number" data-testid="text-insights-monthly">{formatMoney(monthly, 2, preferences.currency)}<small> / month</small></div>
            <span className="delta" data-testid="status-insights-delta"><ArrowDownRight size={12} /> {cancelling > 0 ? `${formatMoney(cancelling, 0, preferences.currency)} in the maybe pile` : 'steady, for now'}</span>
           <div className="spend-chart" style={{ height: 230, paddingLeft: 0, paddingRight: 0, marginTop: 25, borderTop: '1px solid hsl(var(--border) / .65)' }} data-testid="chart-insights-trend">
-             {['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'].map((month, index) => <div className="bar-wrap" key={month}><div className={`bar ${index === 5 ? 'current' : ''}`} style={{ height: `${Math.max(12, chartValues[index] * 76)}%` }}><span className="bar-amount">{formatMoney(monthly * chartValues[index], 0, preferences.currency)}</span></div><span className="bar-label">{month}</span></div>)}
+             {series.map((point, index) => <div className="bar-wrap" key={point.month}><div className={`bar ${index === series.length - 1 ? 'current' : ''}`} style={{ height: `${Math.max(12, point.amountUSD / seriesMax * 88)}%` }}><span className="bar-amount">{formatMoney(point.amountUSD, 0, preferences.currency, 'USD')}</span></div><span className="bar-label">{formatMonthLabel(point.month)}</span></div>)}
           </div>
         </section>
         <section className="panel panel-pad">

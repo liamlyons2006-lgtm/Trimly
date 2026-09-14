@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Sync changes to GitHub",
+      "trigger": "Stop",
+      "description": "When an agent turn completes, commit any working-tree changes and push them to the GitHub 'origin' remote on the current branch. No-ops when the tree is clean.",
+      "action": {
+        "type": "command",
+        "command": "powershell -NoProfile -Command \"if (-not (git rev-parse --is-inside-work-tree 2>$null)) { Write-Output 'Not a git repository; skipping sync'; exit 0 }; if ([string]::IsNullOrWhiteSpace((git status --porcelain))) { Write-Output 'No changes to sync'; exit 0 }; $branch = (git rev-parse --abbrev-ref HEAD).Trim(); git add -A; git commit -m 'chore: sync changes from Kiro [skip ci]'; git push origin $branch\"",
+        "timeout": 120
+      }
+    }
+  ]
+}

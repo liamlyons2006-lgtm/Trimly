@@ -4,23 +4,26 @@ import { Link } from 'wouter';
 import { SubscriptionDialog } from '@/components/subscription-dialog';
 import { PageHeader } from '@/components/trimly-shell';
 import { useTrimly } from '@/hooks/use-trimly';
-import { annualAmountInCurrency, formatDate, formatMoney, monthlyAmountInCurrency } from '@/lib/trimly';
+import { annualAmountInCurrency, buildSpendSeries, formatDate, formatMonthLabel, formatMoney, monthlyAmountInCurrency } from '@/lib/trimly';
 
 function DemoNote() {
   return <div style={{ marginBottom: 16, padding: '10px 13px', borderRadius: 10, background: 'hsl(var(--accent) / .13)', border: '1px solid hsl(var(--accent) / .27)', color: 'hsl(var(--foreground) / .72)', fontSize: 11 }} data-testid="status-demo-note"><strong style={{ color: 'hsl(var(--foreground))' }}>A little head start.</strong> These softly tagged entries are demo data. Edit or delete them to make Trimly yours.</div>;
 }
 
 export default function Dashboard() {
-  const { subscriptions, preferences, loading, addSubscription } = useTrimly();
+  const { subscriptions, preferences, loading, addSubscription, spendHistory } = useTrimly();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [toast, setToast] = useState('');
   const active = useMemo(() => subscriptions.filter((item) => item.status !== 'cancelled'), [subscriptions]);
   const monthly = useMemo(() => active.reduce((sum, item) => sum + monthlyAmountInCurrency(item, preferences.currency), 0), [active, preferences.currency]);
   const annual = useMemo(() => active.reduce((sum, item) => sum + annualAmountInCurrency(item, preferences.currency), 0), [active, preferences.currency]);
   const upcoming = useMemo(() => [...active].sort((a, b) => a.nextChargeDate.localeCompare(b.nextChargeDate)).slice(0, 4), [active]);
+  const monthlyUSD = useMemo(() => active.reduce((sum, item) => sum + monthlyAmountInCurrency(item, 'USD'), 0), [active]);
+  const series = useMemo(() => buildSpendSeries(spendHistory, monthlyUSD, 6), [spendHistory, monthlyUSD]);
+  const seriesMax = useMemo(() => Math.max(...series.map((point) => point.amountUSD), 1), [series]);
 
-  const saveNew = (data: { name: string; merchant: string; amount: string; billingCycle: 'monthly' | 'annual' | 'weekly'; nextChargeDate: string; category: string; color: string }) => {
-     addSubscription({ ...data, amount: Number(data.amount), amountCurrency: preferences.currency, status: 'active', reminderEnabled: true });
+  const saveNew = (data: { name: string; merchant: string; amount: string; amountCurrency: typeof preferences.currency; billingCycle: 'monthly' | 'annual' | 'weekly'; nextChargeDate: string; category: string; color: string }) => {
+     addSubscription({ ...data, amount: Number(data.amount), amountCurrency: data.amountCurrency, status: 'active', reminderEnabled: true });
     setDialogOpen(false);
     setToast('Subscription added to your picture');
     window.setTimeout(() => setToast(''), 2600);
@@ -63,12 +66,11 @@ export default function Dashboard() {
        {upcoming.length === 0 ? <div className="empty-state" style={{ margin: '0 20px 20px' }}><div className="empty-mark"><Sparkles size={18} /></div><h3>Nothing on the horizon</h3><p>Add a subscription and Trimly will keep the next charge close.</p><button className="button button-primary button-small" onClick={() => setDialogOpen(true)} data-testid="button-add-empty">Add one</button></div> : <div className="charge-list">{upcoming.map((item) => <div className="charge-row" key={item.id} data-testid={`row-upcoming-${item.id}`}><div className="merchant-avatar" style={{ background: item.color }}>{item.merchant.slice(0, 1).toUpperCase()}</div><div className="charge-details"><p className="charge-name">{item.name}</p><p className="charge-date">{formatDate(item.nextChargeDate)} {item.status === 'cancelling' ? '· flagged to cancel' : ''}</p></div><span className="charge-amount">{formatMoney(item.amount, 2, preferences.currency, item.amountCurrency)}</span></div>)}</div>}
         </section>
         <section className="panel">
-          <div className="panel-pad section-heading"><h2>Recent rhythm</h2><span>monthly view</span></div>
-          <div className="spend-chart" aria-label="Six month recurring spend visualization" data-testid="chart-monthly-spend">
-            {['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'].map((month, index) => {
-              const variation = [0.83, 0.89, 0.96, 0.92, 1.03, 1][index];
-              const value = monthly * variation;
-              return <div className="bar-wrap" key={month}><div className={`bar ${index === 5 ? 'current' : ''}`} style={{ height: `${Math.max(10, Math.min(100, value / Math.max(monthly, 1) * 75))}%` }}><span className="bar-amount">{formatMoney(value, 0, preferences.currency)}</span></div><span className="bar-label">{month}</span></div>;
+          <div className="panel-pad section-heading"><h2>Recent rhythm</h2><span>recorded monthly total</span></div>
+          <div className="spend-chart" aria-label="Recorded monthly recurring spend by month" data-testid="chart-monthly-spend">
+            {series.map((point, index) => {
+              const isCurrent = index === series.length - 1;
+              return <div className="bar-wrap" key={point.month}><div className={`bar ${isCurrent ? 'current' : ''}`} style={{ height: `${Math.max(10, Math.min(100, point.amountUSD / seriesMax * 90))}%` }}><span className="bar-amount">{formatMoney(point.amountUSD, 0, preferences.currency, 'USD')}</span></div><span className="bar-label">{formatMonthLabel(point.month)}</span></div>;
             })}
           </div>
         </section>
