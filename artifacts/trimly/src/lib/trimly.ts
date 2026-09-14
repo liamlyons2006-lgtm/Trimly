@@ -125,12 +125,29 @@ export const formatMoney = (
 ) => {
   const option = currencyOptions.find((item) => item.code === normalizeCurrency(currency)) ?? currencyOptions[0];
   const fractionDigits = option.code === 'JPY' ? 0 : digits;
-  return new Intl.NumberFormat(option.locale, {
+  const formatter = new Intl.NumberFormat(option.locale, {
     style: 'currency',
     currency: option.code,
     minimumFractionDigits: fractionDigits,
     maximumFractionDigits: fractionDigits,
-  }).format(convertAmount(value, fromCurrency, option.code));
+  });
+  const converted = convertAmount(value, fromCurrency, option.code);
+  if (option.code !== 'EUR') return formatter.format(converted);
+
+  const parts = formatter.formatToParts(converted);
+  const currencyIndex = parts.findIndex((part) => part.type === 'currency');
+  const firstNumberIndex = parts.findIndex((part) => part.type === 'integer');
+  const prefix = parts
+    .slice(0, firstNumberIndex)
+    .filter((part) => part.type !== 'currency' && part.type !== 'literal')
+    .map((part) => part.value)
+    .join('');
+  const number = parts
+    .slice(firstNumberIndex, currencyIndex)
+    .map((part) => part.value)
+    .join('')
+    .trimEnd();
+  return `${prefix}${parts[currencyIndex]?.value ?? '€'}${number}`;
 };
 
 export const formatDate = (value: string) =>
