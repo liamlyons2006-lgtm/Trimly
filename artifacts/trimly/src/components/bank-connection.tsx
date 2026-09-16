@@ -1,13 +1,19 @@
 import { Building2, Check, Link2, Loader2, RefreshCw, ShieldOff } from 'lucide-react';
 import { usePlaidConnection } from '@/hooks/use-plaid';
 import { SuggestionsReview } from '@/components/suggestions-review';
+import { AuthTokenForm } from '@/components/auth-token-form';
 
 // Bank connection panel for Settings. Renders an honest state machine driven by
-// the server: not_configured (no keys), not_connected (ready to link), connected
-// (a bank is linked), error (needs re-auth). Nothing here implies imported data
-// unless the server actually reports a connection.
+// the server: locked (no access token yet), not_configured (no Plaid keys),
+// not_connected (ready to link), connected (a bank is linked), error (needs
+// re-auth). Nothing here implies imported data unless the server actually
+// reports a connection.
 export function BankConnection() {
   const plaid = usePlaidConnection();
+
+  if (plaid.state === 'locked') {
+    return <AuthTokenForm />;
+  }
 
   if (plaid.state === 'unknown') {
     return (

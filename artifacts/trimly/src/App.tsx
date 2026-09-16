@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryCache, QueryClient, QueryClientProvider, MutationCache } from '@tanstack/react-query';
+import { ApiError, setAuthTokenGetter } from '@workspace/api-client-react';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -10,6 +11,7 @@ import Insights from '@/pages/insights';
 import Settings from '@/pages/settings';
 import Subscriptions from '@/pages/subscriptions';
 import NotFound from '@/pages/not-found';
+import { getAuthToken, setAuthToken } from '@/lib/auth-token';
 import {
   Route,
   Switch,
@@ -17,7 +19,20 @@ import {
   Router as WouterRouter,
 } from 'wouter';
 
-const queryClient = new QueryClient();
+// Attach the stored access token (if any) to every request the generated
+// client makes. A missing/invalid token surfaces as a 401 the caller handles.
+setAuthTokenGetter(() => getAuthToken());
+
+// A 401 means the stored token was rejected (missing, wrong, or rotated on
+// the server) — clear it so the UI falls back to asking for it again.
+function handleAuthError(error: unknown) {
+  if (error instanceof ApiError && error.status === 401) setAuthToken(null);
+}
+
+const queryClient = new QueryClient({
+  queryCache: new QueryCache({ onError: handleAuthError }),
+  mutationCache: new MutationCache({ onError: handleAuthError }),
+});
 
 function Router() {
   return (

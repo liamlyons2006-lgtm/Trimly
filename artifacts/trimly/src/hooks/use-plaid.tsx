@@ -11,12 +11,14 @@ import {
   type SubscriptionSuggestion,
   type PlaidConnectionState,
 } from '@workspace/api-client-react';
+import { useAuthToken } from '@/hooks/use-auth-token';
 
 export type { SubscriptionSuggestion } from '@workspace/api-client-react';
 
 // Connection state comes straight from the server; `unknown` covers the brief
-// window before the first status query resolves (or if it errors).
-export type ConnectionState = PlaidConnectionState | 'unknown';
+// window before the first status query resolves (or if it errors). `locked`
+// means no access token is stored yet, so the server hasn't been asked.
+export type ConnectionState = PlaidConnectionState | 'unknown' | 'locked';
 
 type UsePlaidConnection = {
   state: ConnectionState;
@@ -39,6 +41,7 @@ type UsePlaidConnection = {
 // Plaid Link handshake, exchanges the public token, and exposes sync results.
 export function usePlaidConnection(): UsePlaidConnection {
   const queryClient = useQueryClient();
+  const token = useAuthToken();
   const [linkToken, setLinkToken] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<SubscriptionSuggestion[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -48,12 +51,14 @@ export function usePlaidConnection(): UsePlaidConnection {
       queryKey: getPlaidStatusQueryKey(),
       // not_configured / not_connected are normal states, not retry-worthy failures.
       retry: false,
+      // No point asking the server before we have a token to send it.
+      enabled: Boolean(token),
     },
   });
 
-  const state: ConnectionState = statusQuery.data?.state ?? 'unknown';
+  const state: ConnectionState = !token ? 'locked' : statusQuery.data?.state ?? 'unknown';
   const institution = statusQuery.data?.institution ?? null;
-  const isConfigured = state !== 'not_configured' && state !== 'unknown';
+  const isConfigured = state !== 'not_configured' && state !== 'unknown' && state !== 'locked';
   const isConnected = state === 'connected' || state === 'error';
 
   const refreshStatus = useCallback(() => {
